@@ -1,14 +1,28 @@
 import { MapService } from "./mapService";
 import fetchMock from "fetch-mock-jest";
-import { FETCH_NEARBY_DATA } from "./__fixtures__";
+import { PLACES_RESPONSE } from "./__fixtures__";
 
-const NEARBY_URL =
-  "https://maps.googleapis.com/maps/api/place/nearbysearch/json?query=&location=51.1%2C45.3&apiKey=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGlY6iDBo&radius=50&type=restaurants";
-
-fetchMock.get(NEARBY_URL, FETCH_NEARBY_DATA);
+const COORDS = {
+  latitude: 51.1,
+  longitude: 45.3,
+};
+const NEARBY_URL = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?query=&location=${COORDS.latitude}%2C${COORDS.longitude}&apiKey=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGlY6iDBo&radius=50&type=restaurants`;
+const TEXT_SEARCH_URL = `https://maps.googleapis.com/maps
+/api/place/textsearch/json?query=vegan&location=${COORDS.latitude}%2C${COORDS.longitude}&apiKey=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGlY6iDBo
+&radius=50&type=restaurants`;
 
 describe("MapService", () => {
-  it("fetchNearby with geolocation missing", async () => {
+  beforeEach(() => {
+    fetchMock.get(NEARBY_URL, PLACES_RESPONSE);
+    fetchMock.get(TEXT_SEARCH_URL, PLACES_RESPONSE);
+  });
+
+  afterEach(() => {
+    global.navigator.geolocation = undefined;
+    fetchMock.restore();
+  });
+
+  test("fetchNearby should reject with the correct error object", async () => {
     expect.hasAssertions();
     const service = new MapService();
 
@@ -18,26 +32,44 @@ describe("MapService", () => {
     });
   });
 
-  it("fetchNearby calls api", async () => {
+  test("fetchNearby should send a GET request with the correct url", async () => {
     expect.hasAssertions();
     const service = new MapService();
     global.navigator.geolocation = getMockGeolocation();
 
     await service.fetchNearby();
-    console.log(fetchMock.mock.calls);
-    expect(fetchMock).toHaveLastFetched(NEARBY_URL, "gets");
+    expect(fetchMock).toHaveFetched(NEARBY_URL, "get");
+  });
+
+  test("fetchTextSearch should reject with the correct error object", async () => {
+    expect.hasAssertions();
+    const service = new MapService();
+
+    await expect(service.fetchTextSearch("vegan")).rejects.toStrictEqual({
+      code: 1,
+      message: "User denied geolocation prompt",
+    });
+  });
+
+  test("fetchTextSearch should send a GET request with the correct url", async () => {
+    expect.hasAssertions();
+    const service = new MapService();
+    global.navigator.geolocation = getMockGeolocation();
+
+    await service.fetchTextSearch("vegan");
+    expect(fetchMock).toHaveFetched(TEXT_SEARCH_URL, "get");
   });
 });
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Utilities
 
 function getMockGeolocation() {
   return {
     getCurrentPosition: jest.fn().mockImplementation((success) =>
       Promise.resolve(
         success({
-          coords: {
-            latitude: 51.1,
-            longitude: 45.3,
-          },
+          coords: COORDS,
         })
       )
     ),

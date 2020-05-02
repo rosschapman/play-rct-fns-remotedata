@@ -1,6 +1,8 @@
 /// <reference types="react-scripts" />
 
-// See: https://github.com/wheresrhys/fetch-mock-jest/issues/7#issuecomment-595663315
+/* We need to polyfill missing types for fetch-mock-jest. See discussion here:
+ * https://github.com/wheresrhys/fetch-mock-jest/issues/7#issuecomment-595663315
+ */
 declare module "fetch-mock-jest" {
   import { FetchMockStatic, MockCall, FetchMockSandbox } from "fetch-mock";
   interface FetchMockJestSandbox {
@@ -26,6 +28,7 @@ declare namespace jest {
     ): R;
   }
 }
+// END fetch-mock-jest types
 
 declare namespace NodeJS {
   interface Global {

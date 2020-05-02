@@ -37,8 +37,6 @@ have an HOC component put geolocation on context on load
 
 */
 
-import { Props } from "react";
-
 const apiKey = process.env.PLACES_SECRET as string;
 
 type PlacesParams = {
@@ -50,7 +48,12 @@ type PlacesParams = {
 };
 
 type DefaultPlacesParams = Omit<PlacesParams, "location">;
-type PositionPromise = Promise<Position | PositionError>;
+
+type PlacesResponse = {
+  html_attributions: [];
+  results: google.maps.places.PlaceResult[];
+  status: google.maps.places.PlacesServiceStatus;
+};
 
 export class MapService {
   private readonly urls = {
@@ -64,13 +67,16 @@ export class MapService {
     type: "restaurants",
   };
 
-  private async buildUrl(urlStr: string, textSearch = ""): Promise<string> {
+  private async buildUrl(
+    urlStr: string,
+    textSearch: string = ""
+  ): Promise<string> {
     try {
       const position = await this.fetchPosition();
       const positionParamValue = `${position.coords.latitude},${position.coords.longitude}`;
 
       /*
-        earby: key, location, radius
+        nearby: key, location, radius
         textsearch: key, location, radius, query
       */
 
@@ -87,8 +93,7 @@ export class MapService {
     }
   }
 
-  private fetchPosition(): PositionPromise {
-    // TODO: Do we want a different message here?
+  private fetchPosition(): Promise<Position> {
     if (!navigator.geolocation) {
       return Promise.reject({
         code: 1,
@@ -101,27 +106,31 @@ export class MapService {
     }
   }
 
+  private transformResponse(response: PlacesResponse) {
+    return response.results;
+  }
+
   async fetchNearby() {
     const url = await this.buildUrl(this.urls.nearby);
-    return fetch(url);
+    const response = (await fetch(url)) as Response | PlacesResponse;
+
+    if (response.status === "OK") {
+      return this.transformResponse(response);
+    } else {
+      throw response.status;
+    }
   }
 
-  async fetchTextSearch(placeText: PlacesParams["query"]) {
+  async fetchTextSearch(
+    placeText: PlacesParams["query"]
+  ): Promise<google.maps.places.PlaceResult[]> {
     const url = await this.buildUrl(this.urls.textSearch, placeText);
-    return fetch(url);
+    const response = (await fetch(url)) as Response | PlacesResponse;
+
+    if (response.status === "OK") {
+      return this.transformResponse(response);
+    } else {
+      throw response.status;
+    }
   }
 }
-
-/*
-
-service = new MapService();
-
-service.fetchNearby(params)
-
-
-*/
-
-// function add1(x) { return x+1 };
-
-// [1,2,3,4].map((x) => add1(x))
-// [1,2,3,4].map(add1)

@@ -1,4 +1,4 @@
-export const FETCH_NEARBY_DATA = {
+export const PLACES_RESPONSE = {
   html_attributions: [],
   results: [
     {
