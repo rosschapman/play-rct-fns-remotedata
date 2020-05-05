@@ -1,8 +1,9 @@
 import { StoreService } from "./storeService";
 
+type PlacesResult = google.maps.places.PlaceResult[];
 type PlacesResponse = {
   html_attributions: [];
-  results: google.maps.places.PlaceResult[];
+  results: PlacesResult;
   status: google.maps.places.PlacesServiceStatus;
 };
 
@@ -68,53 +69,36 @@ export class MapService {
     return response.results;
   }
 
-  async fetchNearby(position: Position) {
-    const nearbyPlacesCache = this.cache.get("nearbyPlaces");
-
-    if (nearbyPlacesCache) {
-      return nearbyPlacesCache;
-    }
-
+  async fetchTextSearch(
+    position: Position,
+    placeText: string
+  ): Promise<PlacesResult> {
     const url = await this.buildUrl({
-      urlStr: this.urls.nearby,
+      urlStr: this.urls.textSearch,
+      textSearch: placeText,
       position,
     });
+    const cacheKey = `places.${url}`;
+    const cached = this.cache.get(cacheKey) as PlacesResult;
 
-    const response = (await fetch(url)) as Response & PlacesResponse;
+    if (cached) {
+      return cached;
+    }
 
-    if (response.status === "OK") {
-      const result = this.transformResponse(response);
-      this.setCacheItem(`nearbyPlaces`, result);
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status !== "OK") {
+        throw data;
+      }
+
+      const result = this.transformResponse(data);
+      this.setCacheItem(`places.${url}`, result);
       return result;
-    } else {
-      throw response.status;
+    } catch (e) {
+      // Rethrow to consumer to maintain a consistent try/catch patterning
+      throw e;
     }
   }
-
-  // async fetchTextSearch(
-  //   position: Position,
-  //   placeText: string
-  // ): Promise<google.maps.places.PlaceResult[]> {
-  //   const url = await this.buildUrl({
-  //     urlStr: this.urls.textSearch,
-  //     textSearch: placeText,
-  //     position,
-  //   });
-  //   const cacheKey = `places.${url}`;
-  //   const cached = this.cache.get(cacheKey) as google.maps.places.PlaceResult[];
-
-  //   if (cached) {
-  //     return cached;
-  //   }
-
-  //   const response = (await fetch(url)) as Response | PlacesResponse;
-
-  //   if (response.status === "OK") {
-  //     const result = this.transformResponse(response);
-  //     this.setCacheItem(`places.${url}`, result);
-  //     return result;
-  //   } else {
-  //     throw response.status;
-  //   }
-  // }
 }
