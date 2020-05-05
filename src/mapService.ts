@@ -1,53 +1,4 @@
-/*
-
-need to turn on geolocation in browser
-navigator.geolocation.getCurrentPosition((pos) => console.log(pos))
-
-nearby: https://maps.googleapis.com/maps/api/place/nearbysearch/json?type=restaurant&name=<query>
-
-requried params: key, location, radius
-
-
-for markers?
-
-export class Map extends React.Component {
-  renderChildren() {
-    const {children} = this.props;
-
-    if (!children) return;
-
-    return React.Children.map(children, c => {
-      return React.cloneElement(c, {
-        map: this.map,
-        google: this.props.google,
-        mapCenter: this.state.currentLocation
-      });
-    })
-  }
-  // ...
-}
-
-/** The position of the concerned device at a given time. The position, represented by a Coordinates object, comprehends the 2D position of the device, on a spheroid representing the Earth, but also its altitude and its speed. 
-// interface Position {
-//   readonly coords: Coordinates;
-//   readonly timestamp: number;
-// }
-
-have an HOC component put geolocation on context on load
-
-*/
-
-const apiKey = process.env.PLACES_SECRET as string;
-
-type PlacesParams = {
-  type: string;
-  apiKey: string;
-  location: string;
-  radius: string;
-  query: string;
-};
-
-type DefaultPlacesParams = Omit<PlacesParams, "location">;
+import { StoreService } from "./storeService";
 
 type PlacesResponse = {
   html_attributions: [];
@@ -56,44 +7,51 @@ type PlacesResponse = {
 };
 
 export class MapService {
+  cache = new StoreService({ store: localStorage });
+
   private readonly urls = {
-    nearby: `https://maps.googleapis.com/maps/api/place/nearbysearch/json?`,
-    textSearch: `https://maps.googleapis.com/maps/api/place/textsearch/json?`,
+    nearby: `/nearbysearch/`,
+    textSearch: `/textsearch/`,
   };
 
-  private readonly defaultSearchParams: DefaultPlacesParams = {
-    apiKey,
+  private readonly defaultSearchParams = {
+    key: process.env.REACT_APP_PLACES_SECRET as string,
     radius: "50",
     type: "restaurants",
+    query: "",
   };
 
-  private async buildUrl(
-    urlStr: string,
-    textSearch: string = ""
-  ): Promise<string> {
-    try {
-      const position = await this.fetchPosition();
-      const positionParamValue = `${position.coords.latitude},${position.coords.longitude}`;
+  private buildUrl({
+    urlStr,
+    position,
+    textSearch = "",
+  }: {
+    urlStr: string;
+    position: Position;
+    textSearch?: string;
+  }) {
+    const location = `${position.coords.latitude}, ${position.coords.longitude}` as string;
 
-      /*
-        nearby: key, location, radius
-        textsearch: key, location, radius, query
-      */
+    const searchParams = new URLSearchParams({
+      query: textSearch,
+      location,
+      ...this.defaultSearchParams,
+    }).toString();
 
-      const searchParams = new URLSearchParams({
-        query: textSearch,
-        location: positionParamValue,
-        ...this.defaultSearchParams,
-      }).toString();
-
-      return urlStr + searchParams;
-    } catch (e) {
-      // TODO
-      throw e;
-    }
+    return urlStr + searchParams;
   }
 
-  private fetchPosition(): Promise<Position> {
+  private setCacheItem(key: string, value: string | { [k: string]: any }) {
+    this.cache.set(key, value);
+  }
+
+  async fetchPosition(): Promise<Position> {
+    const positionCache = this.cache.get("position") as Position;
+
+    if (positionCache) {
+      return Promise.resolve(positionCache);
+    }
+
     if (!navigator.geolocation) {
       return Promise.reject({
         code: 1,
@@ -110,27 +68,53 @@ export class MapService {
     return response.results;
   }
 
-  async fetchNearby() {
-    const url = await this.buildUrl(this.urls.nearby);
-    const response = (await fetch(url)) as Response | PlacesResponse;
+  async fetchNearby(position: Position) {
+    const nearbyPlacesCache = this.cache.get("nearbyPlaces");
+
+    if (nearbyPlacesCache) {
+      return nearbyPlacesCache;
+    }
+
+    const url = await this.buildUrl({
+      urlStr: this.urls.nearby,
+      position,
+    });
+
+    const response = (await fetch(url)) as Response & PlacesResponse;
 
     if (response.status === "OK") {
-      return this.transformResponse(response);
+      const result = this.transformResponse(response);
+      this.setCacheItem(`nearbyPlaces`, result);
+      return result;
     } else {
       throw response.status;
     }
   }
 
-  async fetchTextSearch(
-    placeText: PlacesParams["query"]
-  ): Promise<google.maps.places.PlaceResult[]> {
-    const url = await this.buildUrl(this.urls.textSearch, placeText);
-    const response = (await fetch(url)) as Response | PlacesResponse;
+  // async fetchTextSearch(
+  //   position: Position,
+  //   placeText: string
+  // ): Promise<google.maps.places.PlaceResult[]> {
+  //   const url = await this.buildUrl({
+  //     urlStr: this.urls.textSearch,
+  //     textSearch: placeText,
+  //     position,
+  //   });
+  //   const cacheKey = `places.${url}`;
+  //   const cached = this.cache.get(cacheKey) as google.maps.places.PlaceResult[];
 
-    if (response.status === "OK") {
-      return this.transformResponse(response);
-    } else {
-      throw response.status;
-    }
-  }
+  //   if (cached) {
+  //     return cached;
+  //   }
+
+  //   const response = (await fetch(url)) as Response | PlacesResponse;
+
+  //   if (response.status === "OK") {
+  //     const result = this.transformResponse(response);
+  //     this.setCacheItem(`places.${url}`, result);
+  //     return result;
+  //   } else {
+  //     throw response.status;
+  //   }
+  // }
 }

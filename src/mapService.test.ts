@@ -6,9 +6,9 @@ const COORDS = {
   latitude: 51.1,
   longitude: 45.3,
 };
-const NEARBY_URL = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?query=&location=${COORDS.latitude}%2C${COORDS.longitude}&apiKey=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGlY6iDBo&radius=50&type=restaurants`;
+const NEARBY_URL = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?query=&location=${COORDS.latitude}%2C${COORDS.longitude}&key=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGlY6iDBo&radius=50&type=restaurants`;
 const TEXT_SEARCH_URL = `https://maps.googleapis.com/maps
-/api/place/textsearch/json?query=vegan&location=${COORDS.latitude}%2C${COORDS.longitude}&apiKey=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGlY6iDBo
+/api/place/textsearch/json?query=vegan&location=${COORDS.latitude}%2C${COORDS.longitude}&key=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGlY6iDBo
 &radius=50&type=restaurants`;
 
 describe("MapService", () => {

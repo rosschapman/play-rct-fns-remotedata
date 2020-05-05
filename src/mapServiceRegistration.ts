@@ -25,29 +25,40 @@ const service = new MapService();
 
 type Props = {
   children: (props: {
-    places: google.maps.places.PlaceResult[];
-  }) => React.ReactChildren;
+    nearbyPlaces: google.maps.places.PlaceResult[];
+  }) => React.ReactNode;
 };
-export class MapFetch extends React.Component<
-  Props,
-  { places: google.maps.places.PlaceResult[] }
-> {
+type State = {
+  nearbyPlaces: google.maps.places.PlaceResult[];
+};
+
+export class MapServiceRegistration extends React.Component<Props, State> {
   state = {
+    nearbyPlaces: [],
     places: [],
   };
 
   async componentDidMount() {
-    const places = await service.fetchNearby();
+    const position = await service.fetchPosition();
+
+    if ("code" in position) {
+      throw position;
+    }
+
+    const nearbyPlaces = (await service.fetchNearby(
+      position
+    )) as google.maps.places.PlaceResult[];
+
     this.setState({
-      places,
+      nearbyPlaces,
     });
   }
 
   render() {
-    const { places } = this.state;
+    const { nearbyPlaces } = this.state;
 
     return this.props.children({
-      places,
+      nearbyPlaces,
     });
   }
 }
