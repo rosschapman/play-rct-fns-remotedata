@@ -7,15 +7,14 @@ type PlacesResponse = {
   status: google.maps.places.PlacesServiceStatus;
 };
 
-export class MapService {
+export class GeoService {
   cache = new StoreService({ store: localStorage });
 
   private readonly urls = {
-    textSearch: `/textsearch?`,
+    textSearch: `/textsearch/`,
   };
 
   private readonly defaultSearchParams = {
-    key: process.env.REACT_APP_PLACES_SECRET as string,
     radius: "50",
     type: "restaurants",
     query: "",
@@ -32,11 +31,15 @@ export class MapService {
   }) {
     const location = `${position.coords.latitude}, ${position.coords.longitude}` as string;
 
-    const searchParams = new URLSearchParams({
+    const mergedParams = {
       ...this.defaultSearchParams,
       query: textSearch,
       location,
-    }).toString();
+      // For some reason Google likes this last, TODO investigate
+      key: process.env.REACT_APP_PLACES_SECRET as string,
+    };
+
+    const searchParams = new URLSearchParams(mergedParams).toString();
 
     return urlStr + searchParams;
   }
@@ -77,7 +80,7 @@ export class MapService {
       textSearch: placeText,
       position,
     });
-    console.log("URL", url);
+
     const cacheKey = `places.${url}`;
     const cached = this.cache.get(cacheKey) as PlacesResult;
 

@@ -52,7 +52,8 @@
     "eslint": "^6.8.0",
     "eslint-plugin-jest": "^23.8.2",
     "fetch-mock-jest": "^1.2.7",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.15",
+    "storybook-addon-jsx": "^7.2.3"
   },
   "proxy": "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
 }

@@ -1,9 +1,5 @@
 import React from "react";
-export enum Status {
-  IDLE = "idle",
-  WAITING = "waiting",
-  ERROR = "error",
-}
+import { Status } from "./types";
 
 type Props = {
   status: Status;

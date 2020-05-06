@@ -1,14 +1,50 @@
 import React from "react";
-import { linkTo } from "@storybook/addon-links";
-import { Welcome } from "@storybook/react/demo";
+import { RemoteDataContainer } from "../remoteData";
+import { Status } from "../types";
 
 export default {
-  title: "Welcome",
-  component: Welcome,
+  title: "Remote Data Demo",
+  component: RemoteDataContainer,
 };
 
-export const ToStorybook = () => <Welcome showApp={linkTo("Button")} />;
+export const RemoteDataWaiting = () => (
+  <RemoteDataContainer
+    status={"waiting" as Status.WAITING}
+    data={null}
+    idle={"RENDER IDLE"}
+    waiting={"RENDER WAITING"}
+    error={"RENDER ERROR"}
+  />
+);
 
-ToStorybook.story = {
-  name: "to Storybook",
+export const RemoteDataIdle = () => (
+  <RemoteDataContainer
+    status={"idle" as Status.IDLE}
+    data={null}
+    idle={"RENDER IDLE"}
+    waiting={"RENDER WAITING"}
+    error={"RENDER ERROR"}
+  />
+);
+
+export const RemoteDataError = () => (
+  <RemoteDataContainer
+    status={"error" as Status.ERROR}
+    data={null}
+    idle={"RENDER IDLE"}
+    waiting={"RENDER WAITING"}
+    error={"RENDER ERROR"}
+  />
+);
+
+RemoteDataWaiting.story = {
+  name: "Waiting",
+};
+
+RemoteDataIdle.story = {
+  name: "Idle",
+};
+
+RemoteDataError.story = {
+  name: "Error",
 };

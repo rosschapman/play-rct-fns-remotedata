@@ -1,4 +1,4 @@
-import { MapService } from "./mapService";
+import { GeoService } from "./geoService";
 import fetchMock from "fetch-mock-jest";
 import { PLACES_RESPONSE } from "./__fixtures__";
 
@@ -38,7 +38,7 @@ const TEXT_SEARCH_URL_QUERY = `/textsearch?key=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGl
 const TEXT_SEARCH_URL = `/textsearch?key=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGlY6iDBo&radius=50&type=restaurants&query=&location=51.1%2C+45.3`;
 const TEXT_SEARCH_URL_BAD = `/textsearch?key=AIzaSyC9iT33vKT-pb7Lrok97X5aNPhGlY6iDBo&radius=50&type=restaurants&query=&location=Infinity%2C+Infinity`;
 
-describe("MapService", () => {
+describe("GeoService", () => {
   describe("fetchTextSearch", () => {
     beforeEach(() => {
       fetchMock.get(TEXT_SEARCH_URL_QUERY, PLACES_RESPONSE);
@@ -52,7 +52,7 @@ describe("MapService", () => {
 
     test("fetchTextSearch should reject with the correct error object", async () => {
       expect.hasAssertions();
-      const service = new MapService();
+      const service = new GeoService();
 
       await expect(
         service.fetchTextSearch(POSITION_ERROR)
@@ -61,7 +61,7 @@ describe("MapService", () => {
 
     test("fetchTextSearch should send a GET request with the correct url", async () => {
       expect.hasAssertions();
-      const service = new MapService();
+      const service = new GeoService();
 
       await service.fetchTextSearch(POSITION);
       expect(fetchMock).toHaveFetched(TEXT_SEARCH_URL, "get");
@@ -69,7 +69,7 @@ describe("MapService", () => {
 
     test("fetchTextSearch should send a GET request with the correct url when it has a query query param", async () => {
       expect.hasAssertions();
-      const service = new MapService();
+      const service = new GeoService();
 
       await service.fetchTextSearch(POSITION, "vegan");
       expect(fetchMock).toHaveFetched(TEXT_SEARCH_URL_QUERY, "get");
@@ -79,7 +79,7 @@ describe("MapService", () => {
   describe("fetchPosition", () => {
     test("fetchPosition should resolve with the correct geolocation object", async () => {
       expect.hasAssertions();
-      const service = new MapService();
+      const service = new GeoService();
       global.navigator.geolocation = getMockGeolocation();
       const actual = await service.fetchPosition();
 
@@ -88,7 +88,7 @@ describe("MapService", () => {
 
     test("fetchPosition should reject with the correct error object", async () => {
       expect.hasAssertions();
-      const service = new MapService();
+      const service = new GeoService();
       global.navigator.geolocation = undefined;
 
       await expect(service.fetchPosition()).rejects.toStrictEqual(

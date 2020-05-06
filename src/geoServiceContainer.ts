@@ -1,8 +1,8 @@
 import React from "react";
-import { MapService } from "./mapService";
-import { Status } from "./remoteData";
+import { GeoService } from "./geoService";
+import { Action, ActionType, Status } from "./types";
 
-const service = new MapService();
+const service = new GeoService();
 
 type Props = {
   children: (props: {
@@ -14,28 +14,69 @@ type Props = {
 
 type State = {
   status: Status;
-  data: any;
+  data: any; // TODO should be PlaceResult[] or error object
 };
 
-enum ActionType {
-  SUCCESS = "success",
-  SUBMIT = "submit",
-  ERROR = "error",
-}
+export const actionMachine = async function (
+  status: Status,
+  action: Action,
+  instance: GeoServiceContainer | any // TODO: any is for test
+) {
+  switch (status) {
+    case Status.IDLE:
+      switch (action.type) {
+        case ActionType.SUCCESS:
+          instance.setState({
+            data: action.payload,
+          });
+          break;
+      }
+      break;
+    case Status.WAITING:
+      switch (action.type) {
+        case ActionType.SUBMIT:
+          // Example of how you can enforce behavior in the machine, ie prevent sending
+          // repeating transaction scripts
+          if (instance.state.status === Status.WAITING) {
+            return;
+          }
 
-type Action =
-  | {
-      type: ActionType.SUCCESS;
-      payload: google.maps.places.PlaceResult[];
-    }
-  | {
-      type: ActionType.SUBMIT;
-      payload: string;
-    }
-  | {
-      type: ActionType.ERROR;
-      payload: any;
-    };
+          instance.setState({
+            status: Status.WAITING,
+          });
+
+          try {
+            const position = await service.fetchPosition();
+            const places = await service.fetchTextSearch(
+              position,
+              action.payload
+            );
+            instance.dispatch(Status.IDLE, {
+              type: ActionType.SUCCESS,
+              payload: places,
+            });
+          } catch (e) {
+            instance.dispatch(Status.ERROR, {
+              type: ActionType.ERROR,
+              payload: e,
+            });
+          }
+
+          break;
+      }
+      break;
+    case Status.ERROR:
+      instance.setState({
+        status: Status.ERROR,
+        data: action.payload,
+      });
+      break;
+    default:
+      throw Error(
+        "Something has gone horribly wrong and we've allowed our users to violate our laws of physics"
+      );
+  }
+};
 
 export class GeoServiceContainer extends React.Component<Props, State> {
   state = {
@@ -48,59 +89,7 @@ export class GeoServiceContainer extends React.Component<Props, State> {
   }
 
   async dispatch(status: Status, action: Action) {
-    switch (status) {
-      case Status.IDLE:
-        switch (action.type) {
-          case ActionType.SUCCESS:
-            this.setState({
-              data: action.payload,
-            });
-            break;
-        }
-        break;
-      case Status.WAITING:
-        switch (action.type) {
-          case ActionType.SUBMIT:
-            // Example intercept
-            if (this.state.status === Status.WAITING) {
-              return;
-            }
-
-            try {
-              this.setState({
-                status: Status.WAITING,
-              });
-
-              const position = await service.fetchPosition();
-              const places = (await service.fetchTextSearch(
-                position,
-                action.payload
-              )) as any;
-              this.dispatch(Status.IDLE, {
-                type: ActionType.SUCCESS,
-                payload: places,
-              });
-            } catch (e) {
-              this.dispatch(Status.ERROR, {
-                type: ActionType.ERROR,
-                payload: e,
-              });
-            }
-
-            break;
-        }
-        break;
-      case Status.ERROR:
-        this.setState({
-          status: Status.ERROR,
-          data: action.payload,
-        });
-        break;
-      default:
-        throw Error(
-          "Something has gone horribly wrong and we've allowed our users to violate our laws of physics"
-        );
-    }
+    await actionMachine(status, action, this);
   }
 
   handleSendSearch(value: string) {
