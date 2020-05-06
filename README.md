@@ -2,7 +2,11 @@ Hello AllTrails engineering!!! 👋👋👋
 
 ![](https://media.giphy.com/media/KDz4xUcEH67JzYbGZI/giphy-downsized.gif)
 
-I'm excited to share with you some ideas that I explored while working on your coding challenge. Here's a sketch of my main areas of focus to reach the current stage of the project. 
+I'm excited to share with you some ideas that I explored while working on your coding challenge. Here's a brief visual demo: 
+
+
+
+You'll notice the page is unstyled. This was a sacrifice I made to focus more on the "backend of the frontend" -- I felt like I talked James' head off about some ideas on the phone so I wanted to make sure and showcase it here. All of the code is written from scratch in order to make these ideas more visible/readable for you. In turn, this also cut down on the time I had for polish. Here are the main focus areas of my work to reach the current stage of development:
 
 1. Setting up a create-react-app project with Typescript and Prettier configs. This was my first time ever using create-react-app.
 1. Creating a plain JS `GeoService` class that serves as a courier layer to the Google Places API. Note: this is an implementation that wraps the Places *node* SDK. I was able to leverage a proxy middlewhere within webpack's dev server to pass requests through and avoid CORS complaints <-- which is something new I learned.
