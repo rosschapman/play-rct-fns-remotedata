@@ -11,8 +11,7 @@ export class MapService {
   cache = new StoreService({ store: localStorage });
 
   private readonly urls = {
-    nearby: `/nearbysearch/`,
-    textSearch: `/textsearch/`,
+    textSearch: `/textsearch?`,
   };
 
   private readonly defaultSearchParams = {
@@ -34,9 +33,9 @@ export class MapService {
     const location = `${position.coords.latitude}, ${position.coords.longitude}` as string;
 
     const searchParams = new URLSearchParams({
+      ...this.defaultSearchParams,
       query: textSearch,
       location,
-      ...this.defaultSearchParams,
     }).toString();
 
     return urlStr + searchParams;
@@ -71,13 +70,14 @@ export class MapService {
 
   async fetchTextSearch(
     position: Position,
-    placeText: string
+    placeText: string = ""
   ): Promise<PlacesResult> {
     const url = await this.buildUrl({
       urlStr: this.urls.textSearch,
       textSearch: placeText,
       position,
     });
+    console.log("URL", url);
     const cacheKey = `places.${url}`;
     const cached = this.cache.get(cacheKey) as PlacesResult;
 
