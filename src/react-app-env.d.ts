@@ -33,9 +33,11 @@ declare namespace jest {
 declare namespace NodeJS {
   interface Global {
     navigator: {
-      geolocation: {
-        getCurrentPosition: jest.Mock<any, any>;
-      };
+      geolocation:
+        | {
+            getCurrentPosition: jest.Mock<any, any>;
+          }
+        | undefined;
     };
   }
 }
