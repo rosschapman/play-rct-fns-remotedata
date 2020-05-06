@@ -1,10 +1,30 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Hello AllTrails engineering!!! 👋👋👋
 
-## Available Scripts
+![](https://media.giphy.com/media/KDz4xUcEH67JzYbGZI/giphy-downsized.gif)
+
+I'm excited to share with you some ideas that I explored while working on your coding challenge. Here's a brief visual demo: 
+
+
+
+You'll notice the page is unstyled. This was a sacrifice I made to focus more on the "backend of the frontend" -- I felt like I talked James' head off about some ideas on the phone so I wanted to make sure and showcase it here. All of the code is written from scratch in order to make these ideas more visible/readable for you. In turn, this also cut down on the time I had for polish. Here are the main focus areas of my work to reach the current stage of development:
+
+1. Setting up a create-react-app project with Typescript and Prettier configs. This was my first time ever using create-react-app.
+1. Creating a plain JS `GeoService` class that serves as a courier layer to the Google Places API. Note: this is an implementation that wraps the Places *node* SDK. I was able to leverage a proxy middlewhere within webpack's dev server to pass requests through and avoid CORS complaints <-- which is something new I learned.
+
+1. Creating a `GeoServiceContainer` component that acts as a localized data provider and store. I'm new to React 16 so I decided not to jump into the Context API quite yet. Nonetheless, I actually find the render child prop pattern quite a suitable alternative for creating more localized context around a sub-group of components or "compound" component. I'd be interested to discuss the pros and cons with y'all.        
+    1. Creating a finite state machine to manage events and side effects. This implementation is the first time I've tried this from scratch, though it's been an idea I've played with in a couple different formats to date. Think a reducer with rules. This format is based on Harel statecharts which is becoming somewhat of a defacto implementation for the community that is following the leadership of the xState maintainers. 
+    
+1. Implementing a view model based on the RemoteData pattern from Elm that maps to the state machine, constraining the UI to a finite set of renders. This is something I've wanted to try for a while. I think I like it -- at least what the outcome starts to imply. You'll notice there is a bit of redundancy across the `Render*` functional components. But what you don't see is a scattershot of boolean flags for `isLoading` `isDisabled` `is...` An article from Kent Dodds early last month really encouraged me to think more this way.
+
+1. Writing *some* tests for the GeoService and GeoServiceContainer state machine. There's only one of the latter, unfortunately. Overall the testing story has to remain a bit impressionistic because I bit off *a lot* to try in this project. I've added a Story to the Storybook for the `RemoteDataContainer` -- this serves as a basic smoke acceptance test for that UI behavior.
+
+1. Storybook! I've never used it before. It was a bit tricky to setup with Typescript but I can see it being a really powerful tool.
+
+## Usage
 
 In the project directory, you can run:
 
-### `yarn start`
+### `HTTPS=true npm start`
 
 Runs the app in the development mode.<br />
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
@@ -16,6 +36,10 @@ You will also see any lint errors in the console.
 
 Launches the test runner in the interactive watch mode.<br />
 See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+
+### `yarn storybook`
+
+Launches Storybook.
 
 ### `yarn build`
 
