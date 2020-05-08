@@ -32,6 +32,8 @@ class PlaceInput extends React.Component<{
   }
 }
 
+// Todo ugh I wish I had more time this would be a PERFECT place to implement the active
+// selection using React.cloneElement
 function RenderIdle({
   sendSearch,
   data,
