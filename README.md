@@ -1,4 +1,4 @@
-Here are the main focus areas of this messaround:
+# Main focus areas of this messaround:
 
 1. Setting up a create-react-app project with Typescript and Prettier configs. This was my first time ever using create-react-app.
 1. Creating a plain JS `GeoService` class that serves as a courier layer to the Google Places API. Note: this is an implementation that wraps the Places *node* SDK. I was able to leverage a proxy middlewhere within webpack's dev server to pass requests through and avoid CORS complaints <-- which is something new I learned.
